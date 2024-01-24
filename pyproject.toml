@@ -30,6 +30,7 @@ dev = [
 
 [tool.setuptools_scm]
 version_scheme = "post-release"
+write_to = "looplog/_version.py"
 
 [tool.setuptools.dynamic]
 readme = { file = ["README.md"], content-type = "text/markdown" }
