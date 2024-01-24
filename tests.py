@@ -30,16 +30,26 @@ class TestStringMethods(unittest.TestCase):
         self.assertTrue("ERROR 002-invalid" in func_custom_name.details())
 
     def test_logger(self):
-        logger = logging.getLogger()
-        logging.basicConfig(filename="example.log", level=logging.DEBUG)
+        logger = logging.getLogger("tests")
+        with self.assertLogs("tests", level="DEBUG") as logstests:
 
-        @looplog([1, None, 3.5, 0], logger=logger)
-        def func_logger(value):
-            if value is None:
-                return SKIP
-            if isinstance(value, float) and not value.is_integer():
-                warnings.warn("Input will be rounded !")
-            10 // value
+            @looplog([1, None, 3.5, 0], logger=logger)
+            def func_logger(value):
+                if value is None:
+                    return SKIP
+                if isinstance(value, float) and not value.is_integer():
+                    warnings.warn("Input will be rounded !")
+                10 // value
+
+            self.assertCountEqual(
+                logstests.output,
+                [
+                    "WARNING:tests:Input will be rounded !",
+                    "ERROR:tests:integer division or modulo by zero\nNoneType: None"
+                    "DEBUG:tests:step_1 succeeded",
+                    "DEBUG:tests:step_2 skipped",
+                ],
+            )
 
         self.assertEqual(func_logger.summary(), "1 ok / 1 warn / 1 err / 1 skip")
 

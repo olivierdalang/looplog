@@ -45,7 +45,7 @@ class StepLog:
 
         if self.warns:
             for warn in self.warns:
-                logger.warning(warn)
+                logger.warning(warn.message)
 
         if self.skipped:
             logger.debug(f"{self.name} skipped")
