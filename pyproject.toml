@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm[toml]>=7.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+requires-python = ">=3.0"
+name = "looplog"
+authors = [{ name = "Olivier Dalang", email = "olivier.dalang@gmail.com" }]
+description = "A little helper to log warnings/errors for processed"
+keywords = ["logging", "warnings", "errors"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+license = { text = "MIT License" }
+dynamic = ["version", "readme"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+]
+
+# [project.urls]
+# homepage = "https://github.com/TODO"
+# repository = "https://github.com/TODO"
+# tracker = "https://github.com/TODO/issues"
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.md"], content-type = "text/markdown" }
