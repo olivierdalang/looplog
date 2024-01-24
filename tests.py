@@ -44,10 +44,11 @@ class TestStringMethods(unittest.TestCase):
             self.assertCountEqual(
                 logstests.output,
                 [
-                    "WARNING:tests:Input will be rounded !",
-                    "ERROR:tests:integer division or modulo by zero\nNoneType: None"
                     "DEBUG:tests:step_1 succeeded",
                     "DEBUG:tests:step_2 skipped",
+                    "WARNING:tests:Input will be rounded !",
+                    # TODO: not sure what NoneType: None is doing there
+                    "ERROR:tests:integer division or modulo by zero\nNoneType: None",
                 ],
             )
 
