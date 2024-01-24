@@ -1,5 +1,3 @@
-name: test
-
 on:
   push:
     branches:
@@ -7,6 +5,18 @@ on:
   pull_request:
 
 jobs:
+
+  lint:
+    name: Lint
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint with pre-commit
+        uses: pre-commit/action@v2.0.2
+
   test:
     name: Tests py${{ matrix.py }}
 
