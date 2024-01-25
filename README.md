@@ -1,6 +1,7 @@
 # Looplog
 
-Looplog is helper to log processing done in a loop, catching errors and warnings to produce a nice report.
+Looplog is a simple helper to log processing done in a loop, catching errors and warnings to produce a readble
+console output, both interactively and not.
 
 Quickly see how it looks with the demo.
 

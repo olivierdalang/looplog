@@ -23,10 +23,10 @@ dev = [
     "pre-commit",
 ]
 
-# [project.urls]
-# homepage = "https://github.com/TODO"
-# repository = "https://github.com/TODO"
-# tracker = "https://github.com/TODO/issues"
+[project.urls]
+homepage = "https://github.com/olivierdalang/looplog"
+repository = "https://github.com/olivierdalang/looplog"
+tracker = "https://github.com/olivierdalang/looplog/issues"
 
 [tool.setuptools_scm]
 version_scheme = "post-release"
