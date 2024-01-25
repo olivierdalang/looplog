@@ -14,6 +14,8 @@ from typing import Any, Callable, Iterable, List, Optional
 
 SKIP = object()
 
+SEPARATOR = "=" * 88
+
 
 class StepType(Enum):
     """Possible step result types"""
@@ -84,18 +86,26 @@ class StepLogs:
         else:
             raise NotImplementedError()
 
+    def __add__(self, other: "StepLogs"):
+        sum_log = StepLogs()
+        for steplog in self._list:
+            sum_log.append(steplog)
+        for steplog in other._list:
+            sum_log.append(steplog)
+        return sum_log
+
     def details(self) -> str:
         lines = []
         for log in self._list:
             if not log.exception and not log.warns:
                 continue
-            lines.append("=" * 80)
+            lines.append(SEPARATOR)
             if log.exception:
                 lines.append(f"ERROR {log.name}: {log.exception}")
             if log.warns:
                 for w in log.warns:
                     lines.append(f"WARNING {log.name}: {w.message}")
-        lines.append("=" * 80)
+        lines.append(SEPARATOR)
         return "\n".join(lines)
 
     def summary(self) -> str:
@@ -108,43 +118,44 @@ class StepLogs:
             ]
         )
 
+    def __str__(self):
+        return "\n".join([self.details(), self.summary()])
+
 
 def looplog(
     values: Iterable[Any],
     name: Optional[str] = None,
     logger: Optional[logging.Logger] = None,
-    stdout=None,
+    realtime_output: Optional[bool] = None,
     limit: Optional[int] = None,
-    step_name_callable: Optional[Callable[[int, Any], str]] = None,
+    step_name: Optional[Callable[[Any], str]] = None,
     unmanaged=False,
 ) -> StepLogs:
     """Decorator running the given function against each value of the provided iterable values, logging warnings and exceptions for each one. This returns a StepLogs object.
 
     Args:
-        values (_type_): List of items to iterate on
-        name (Optional[str], optional): The name of the loop, only used for printing to stdout. Defaults to None.
-        logger (Optional[logging.Logger], optional): Optional logger on which to log errors and warnings. Note that a stap may log more than one message. Defaults to None.
-        stdout (_type_, optional): Where to print stdout for live output. Defaults to sys.stdout.
-        limit (Optional[int], optional): Limit the count of objects to created (ignoring the rest). Defaults to None.
-        step_name_callable (Optional[Callable[[int, Any], str]], optional): A callable returnin the name of the item in logging. Defaults to None.
-        unmanaged (bool, optional): If true, warnings and exceptions will be raised natively instead of being catched. Defaults to False.
+        values: List of items to iterate on
+        name: The name of the loop, only used for printing to stdout.
+        logger: Optional logger on which to log errors and warnings. Note that a stap may log more than one message.
+        realtime_output: Whether to print in readtime to stdout. If left to none, will do so if stdout is a tty decide.
+        limit: Limit the count of objects to created (ignoring the rest).
+        step_name: A callable returning the name of the item in logging.
+        unmanaged: If true, warnings and exceptions will be raised natively instead of being catched.
 
     Returns:
         StepLogs: _description_
     """
 
-    if stdout is None:
-        stdout = sys.stdout
-
     def inner(function):
         steplogs = StepLogs()
 
-        stdout.write(f"Starting loop `{name or function.__name__}`\n")
+        print_output = realtime_output is True or (
+            realtime_output is None and sys.stdout.isatty()
+        )
+        if print_output:
+            print(f"Starting loop `{name or function.__name__}`")
+
         for i, value in enumerate(values, start=1):
-            if step_name_callable:
-                step_name = step_name_callable(i, value)
-            else:
-                step_name = f"step_{i}"
             output = None
             exception = None
 
@@ -167,7 +178,7 @@ def looplog(
                     warnings._showwarnmsg(warn)
 
             steplog = StepLog(
-                name=step_name,
+                name=step_name(value) if step_name else f"step_{i}",
                 exception=exception,
                 warns=warns,
                 output=output,
@@ -175,10 +186,13 @@ def looplog(
             )
             if logger:
                 steplog.emit(logger)
-            stdout.write(steplog.type.value)
-            stdout.flush()
+            if print_output:
+                print(steplog.type.value, end="", flush=True)
             steplogs.append(steplog)
-        stdout.write("\n")
+
+        if print_output:
+            print()
+            print(steplogs)
 
         return steplogs
 

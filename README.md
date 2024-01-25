@@ -2,6 +2,12 @@
 
 Looplog is helper to log processing done in a loop, catching errors and warnings to produce a nice report.
 
+Quickly see how it looks with the demo.
+
+```bash
+python -m looplog.demo
+```
+
 ## Usage
 
 Decorate you function with `@looplog(items)` like this.
@@ -37,7 +43,6 @@ print(func_basic.summary())
 ```
 
 Check the looplog docstring for some additional features (logging, limit, etc.).
-
 
 ## Contribute
 
