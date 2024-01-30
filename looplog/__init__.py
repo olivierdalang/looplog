@@ -159,7 +159,7 @@ def looplog(
             output = None
             exception = None
 
-            if limit and i > limit:
+            if limit is not None and i > limit:
                 break
 
             skipped = False

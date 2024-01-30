@@ -167,5 +167,29 @@ class UnitTests(unittest.TestCase):
         )
 
 
+class RegressionTests(unittest.TestCase):
+    def test_limit_none(self):
+        # No limit (implicit)
+        @looplog([1, 2, 3, 4, 5])
+        def func_limit(value):
+            10 // value
+
+        self.assertEqual(func_limit.summary(), "5 ok / 0 warn / 0 err / 0 skip")
+
+        # No limit (explicit)
+        @looplog([1, 2, 3, 4, 5], limit=None)
+        def func_limit(value):
+            10 // value
+
+        self.assertEqual(func_limit.summary(), "5 ok / 0 warn / 0 err / 0 skip")
+
+        # 0 limit (should treat 0 items)
+        @looplog([1, 2, 3, 4, 5], limit=0)
+        def func_limit(value):
+            10 // value
+
+        self.assertEqual(func_limit.summary(), "0 ok / 0 warn / 0 err / 0 skip")
+
+
 if __name__ == "__main__":
     unittest.main()
