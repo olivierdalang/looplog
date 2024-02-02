@@ -27,6 +27,14 @@ class UsageTests(unittest.TestCase):
 
         self.assertEqual(func_basic.summary(), "12 ok / 1 warn / 2 err / 1 skip")
 
+    def test_empty(self):
+        @looplog([])
+        def func_basic(value):
+            # nothing to do
+            pass
+
+        self.assertEqual(func_basic.summary(), "0 ok / 0 warn / 0 err / 0 skip")
+
     def test_custom_step_name(self):
         @looplog([3.5, "invalid"], step_name=lambda v: f"item [{v}]")
         def func_custom_name(value):
