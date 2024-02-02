@@ -164,7 +164,7 @@ def looplog(
         lw.writeln(f"Starting loop `{loop_name}`...")
         lw.writeln(SEPARATOR_BOLD)
 
-        i = 0
+        i = -1
         for i, value in enumerate(values, start=0):
             lw.provln(
                 f"{loop_name} [{progress(i, max_val)}][{i+1}/{max_val or '?'}][{timer}][{steplogs.summary()}]"

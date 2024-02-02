@@ -144,6 +144,23 @@ class UsageTests(unittest.TestCase):
             collapse_carriage(f.getvalue()),
         )
 
+    def test_realtime_empty(self):
+        f = io.StringIO()
+        f.isatty = lambda: True
+        with redirect_stdout(f):
+
+            @looplog([])
+            def func(value):
+                pass
+
+        self.assertEqual(
+            "========================================================================================\n"
+            "Starting loop `func`...\n"
+            "========================================================================================\n"
+            "Finished `func` [0 steps][in 0:00:00][0 ok / 0 warn / 0 err / 0 skip]\n",
+            collapse_carriage(f.getvalue()),
+        )
+
     def test_unmanaged(self):
         with self.assertWarns(UserWarning):
             with self.assertRaises(ZeroDivisionError):
