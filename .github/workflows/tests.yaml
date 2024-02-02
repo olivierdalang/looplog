@@ -38,5 +38,8 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
 
+      - name: Install
+        run: pip install -e .
+
       - name: Run tests
-        run: python -m tests
+        run: python -m looplog.tests

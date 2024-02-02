@@ -1,10 +1,16 @@
 import io
 import logging
+import re
 import unittest
 import warnings
 from contextlib import redirect_stdout
 
-from looplog import SEPARATOR, SKIP, StepLog, StepLogs, looplog
+from . import SKIP, StepLog, StepLogs, looplog
+
+
+def collapse_carriage(text: str) -> str:
+    """Helper to remove text before cariage returns"""
+    return "\n".join(re.sub(".*\r", "", s) for s in text.split("\n"))
 
 
 class UsageTests(unittest.TestCase):
@@ -28,8 +34,20 @@ class UsageTests(unittest.TestCase):
                 warnings.warn("Input will be rounded !")
             10 // value
 
-        self.assertTrue("WARNING item [3.5]" in func_custom_name.details())
-        self.assertTrue("ERROR item [invalid]" in func_custom_name.details())
+        self.assertIn(
+            "----------------------------------------------------------------------------------------\n"
+            "item [3.5]\n"
+            "    WARN:  Input will be rounded !\n"
+            "----------------------------------------------------------------------------------------\n",
+            func_custom_name.details(),
+        )
+        self.assertIn(
+            "----------------------------------------------------------------------------------------\n"
+            "item [invalid]\n"
+            "    ERROR: unsupported operand type(s) for //: 'int' and 'str'\n"
+            "----------------------------------------------------------------------------------------\n",
+            func_custom_name.details(),
+        )
 
     def test_logger(self):
         logger = logging.getLogger("tests")
@@ -43,17 +61,11 @@ class UsageTests(unittest.TestCase):
                     warnings.warn("Input will be rounded !")
                 10 // value
 
-            self.assertCountEqual(
-                logstests.output,
-                [
-                    "DEBUG:tests:step_1 succeeded",
-                    "DEBUG:tests:step_2 skipped",
-                    "WARNING:tests:Input will be rounded !",
-                    # TODO: not sure what NoneType: None is doing there
-                    "ERROR:tests:integer division or modulo by zero\nNoneType: None",
-                ],
-            )
-
+            logs = "\n".join(logstests.output)
+            self.assertIn("DEBUG:tests:step_1 succeeded", logs)
+            self.assertIn("DEBUG:tests:step_2 skipped", logs)
+            self.assertIn("WARNING:tests:step_3 Input will be rounded !", logs)
+            self.assertIn("ERROR:tests:step_4 integer division or modulo by zero", logs)
         self.assertEqual(func_logger.summary(), "1 ok / 1 warn / 1 err / 1 skip")
 
     def test_limit(self):
@@ -63,54 +75,66 @@ class UsageTests(unittest.TestCase):
 
         self.assertEqual(func_limit.summary(), "3 ok / 0 warn / 0 err / 0 skip")
 
+    def test_generator(self):
+        @looplog((i for i in range(10)))
+        def generator(i):
+            pass
+
+        self.assertEqual(generator.summary(), "10 ok / 0 warn / 0 err / 0 skip")
+
     def test_realtime_notty(self):
         # default without tty
         f = io.StringIO()
         with redirect_stdout(f):
 
-            @looplog([1, 2, 3])
+            @looplog([1, 0, 3])
             def func(value):
-                pass
+                1 / value
 
-        self.assertEqual("", f.getvalue())
+        self.assertEqual(
+            "",
+            f.getvalue(),
+        )
 
     def test_realtime_tty(self):
         f = io.StringIO()
         f.isatty = lambda: True
         with redirect_stdout(f):
 
-            @looplog([1, 2, 3])
+            @looplog([1, 0, 3])
             def func(value):
-                pass
+                1 / value
 
         self.assertEqual(
-            f"Starting loop `func`\n...\n{SEPARATOR}\n3 ok / 0 warn / 0 err / 0 skip\n",
-            f.getvalue(),
+            "========================================================================================\n"
+            "Starting loop `func`...\n"
+            "========================================================================================\n"
+            "step_2\n"
+            "    ERROR: division by zero\n"
+            "----------------------------------------------------------------------------------------\n"
+            "Finished `func` [4 steps][in 0:00:00][2 ok / 0 warn / 1 err / 0 skip]\n",
+            collapse_carriage(f.getvalue()),
         )
 
-    def test_realtime_yes(self):
-        f = io.StringIO()
-        with redirect_stdout(f):
-
-            @looplog([1, 2, 3], realtime_output=True)
-            def func(value):
-                pass
-
-        self.assertEqual(
-            f"Starting loop `func`\n...\n{SEPARATOR}\n3 ok / 0 warn / 0 err / 0 skip\n",
-            f.getvalue(),
-        )
-
-    def test_realtime_no(self):
+    def test_realtime_nocheck(self):
         f = io.StringIO()
         f.isatty = lambda: True
         with redirect_stdout(f):
 
-            @looplog([1, 2, 3], realtime_output=False)
+            @looplog([1, 0, 3], check_tty=False)
             def func(value):
-                pass
+                1 / value
 
-        self.assertEqual("", f.getvalue())
+        self.assertEqual(
+            "========================================================================================\n"
+            "Starting loop `func`...\n"
+            "========================================================================================\n"
+            "step_2\n"
+            "    ERROR: division by zero\n"
+            "----------------------------------------------------------------------------------------\n"
+            "Finished `func` [4 steps][in 0:00:00][2 ok / 0 warn / 1 err / 0 skip]\n",
+            collapse_carriage(f.getvalue()),
+        )
 
     def test_unmanaged(self):
         with self.assertWarns(UserWarning):
@@ -126,23 +150,13 @@ class UsageTests(unittest.TestCase):
 class UnitTests(unittest.TestCase):
     def test_steplogs(self):
         log_a = StepLogs()
-        log_a.append(
-            StepLog(name="a", exception=None, warns=[], skipped=False, output="")
-        )
+        log_a.append(StepLog(name="succeeded"))
         log_b = StepLogs()
-        log_b.append(
-            StepLog(name="b", exception=None, warns=["warn"], skipped=False, output="")
-        )
+        log_b.append(StepLog(name="warned", warns=["warn"]))
         log_c = StepLogs()
-        log_c.append(
-            StepLog(
-                name="c", exception=Exception("e"), warns=[], skipped=False, output=""
-            )
-        )
+        log_c.append(StepLog(name="errored", exception=Exception("e")))
         log_d = StepLogs()
-        log_d.append(
-            StepLog(name="d", exception=None, warns=[], skipped=True, output="")
-        )
+        log_d.append(StepLog(name="skipped", skipped=True))
         log_t = log_a + log_b + log_c + log_d
 
         self.assertEqual(
