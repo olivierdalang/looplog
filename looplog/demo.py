@@ -9,9 +9,9 @@ logger = logging.getLogger("")
 
 
 def demo():
-    old_grades = [12, 14, 7, 11, "19", 11.25, 22.25, 0, 13, None, 15, 12]
+    old_grades = [12, 14, 7, 11, "19", 11.25, "a" * 240, 0, 22.25, 0, 13, None, 15, 12]
 
-    @looplog(old_grades, logger=logger)
+    @looplog(old_grades, logger=logger, step_name=lambda g: f"step {repr(g)}")
     def convert_list(old_grade):
         if old_grade is None:
             return SKIP

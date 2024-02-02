@@ -7,16 +7,16 @@ from typing import Optional
 class LineWriter:
     def __init__(self, enabled: bool = True):
         self.enabled = enabled
-        self.max_length = 0
+        self.last_len = 0
 
     def provln(self, text: str):
         """Write a provisional line (no break, replacing current line)"""
         if not self.enabled:
             return
-        pad = " " * self.max_length
+        pad = " " * self.last_len
         sys.stdout.write(f"\r{pad}")
         sys.stdout.write(f"\r{text}")
-        self.max_length = max(len(text), self.max_length)
+        self.last_len = len(text)
 
     def nextln(self):
         """Make the current line definitive"""
