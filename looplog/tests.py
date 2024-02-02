@@ -112,7 +112,7 @@ class UsageTests(unittest.TestCase):
             "step_2\n"
             "    ERROR: division by zero\n"
             "----------------------------------------------------------------------------------------\n"
-            "Finished `func` [4 steps][in 0:00:00][2 ok / 0 warn / 1 err / 0 skip]\n",
+            "Finished `func` [3 steps][in 0:00:00][2 ok / 0 warn / 1 err / 0 skip]\n",
             collapse_carriage(f.getvalue()),
         )
 
@@ -132,7 +132,7 @@ class UsageTests(unittest.TestCase):
             "step_2\n"
             "    ERROR: division by zero\n"
             "----------------------------------------------------------------------------------------\n"
-            "Finished `func` [4 steps][in 0:00:00][2 ok / 0 warn / 1 err / 0 skip]\n",
+            "Finished `func` [3 steps][in 0:00:00][2 ok / 0 warn / 1 err / 0 skip]\n",
             collapse_carriage(f.getvalue()),
         )
 

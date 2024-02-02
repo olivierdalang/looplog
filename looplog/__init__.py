@@ -211,7 +211,7 @@ def looplog(
 
             steplogs.append(steplog)
         lw.writeln(
-            f"Finished `{loop_name}` [{i+i} steps][in {timer}][{steplogs.summary()}]"
+            f"Finished `{loop_name}` [{i+1} steps][in {timer}][{steplogs.summary()}]"
         )
 
         return steplogs
