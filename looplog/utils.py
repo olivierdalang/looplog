@@ -36,7 +36,7 @@ class LineWriter:
 def progress(val: int, max_val: Optional[int]):
     WIDTH = 22
     if max_val:
-        p = round(WIDTH * val / (max_val - 1))
+        p = round(WIDTH * val / max(1, max_val - 1))
         f = "#" * p
         e = " " * (WIDTH - p)
         return f"{f}{e}"
