@@ -49,9 +49,9 @@ Check the looplog docstring for some additional features (logging, limit, etc.).
 
 ```bash
 # install pre-commit
-pip install pre-commit
+pip install pre-commit mypy
 pre-commit install
 
 # run tests
-python -m tests
+python -m looplog.tests
 ```
