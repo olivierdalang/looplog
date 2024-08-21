@@ -9,15 +9,15 @@ logger = logging.getLogger("")
 
 
 def demo():
-    old_grades = [12, 14, 7, 11, "19", 11.25, "a" * 240, 0, 22.25, 0, 13, None, 15, 12]
+    old_grades = [12, 14, 7, 11.25, "19", 0, 22.25, 0, 13, None, 15, 12]
 
-    @looplog(old_grades, logger=logger, step_name=lambda g: f"step {repr(g)}")
-    def convert_list(old_grade):
+    @looplog(old_grades, logger=logger, step_name=lambda g: f"validating {repr(g)}")
+    def validate_grade(old_grade):
         if old_grade is None:
             return SKIP
 
         # simulate some processing time
-        time.sleep(random.uniform(0, 1))
+        time.sleep(random.uniform(0, 0.1))
 
         # raise warnings if needed
         if isinstance(old_grade, float) and not old_grade.is_integer():
@@ -30,13 +30,17 @@ def demo():
 
         # do something..
 
-    time.sleep(2)
+    time.sleep(0.5)
     input("\n\nPress enter to show summary...")
-    print(convert_list.summary())
+    print(validate_grade.summary())
 
-    time.sleep(2)
+    time.sleep(0.5)
+    input("\n\nPress enter to show report...")
+    print(validate_grade.report())
+
+    time.sleep(0.5)
     input("\n\nPress enter to show details...")
-    print(convert_list.details())
+    print(validate_grade.details())
 
 
 if __name__ == "__main__":

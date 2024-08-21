@@ -41,6 +41,14 @@ print(func_basic.details())
 print(func_basic.summary())
 
 # 17 ok / 1 warn / 2 err / 1 skip
+
+print(func_basic.report())
+
+# Errors:
+#   1   TypeError
+#   1   ZeroDivisionError
+# Warnings:
+#   1   UserWarning
 ```
 
 Check the looplog docstring for some additional features (logging, limit, etc.).

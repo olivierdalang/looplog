@@ -26,6 +26,28 @@ class UsageTests(unittest.TestCase):
             10 // value
 
         self.assertEqual(func_basic.summary(), "12 ok / 1 warn / 2 err / 1 skip")
+        self.assertEqual(
+            func_basic.report(),
+            "----------------------------------------------------------------------------------------\n"
+            "Errors:\n"
+            "    1   TypeError\n"
+            "    1   ZeroDivisionError\n"
+            "Warnings:\n"
+            "    1   UserWarning\n",
+        )
+        self.assertEqual(
+            func_basic.details(),
+            "----------------------------------------------------------------------------------------\n"
+            "step_9\n"
+            "    ERROR: unsupported operand type(s) for //: 'int' and 'str'\n"
+            "----------------------------------------------------------------------------------------\n"
+            "step_11\n"
+            "    WARN:  Input will be rounded !\n"
+            "----------------------------------------------------------------------------------------\n"
+            "step_13\n"
+            "    ERROR: integer division or modulo by zero\n"
+            "----------------------------------------------------------------------------------------\n",
+        )
 
     def test_empty(self):
         @looplog([])

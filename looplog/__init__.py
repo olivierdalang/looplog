@@ -6,6 +6,7 @@ except ModuleNotFoundError:
 import logging
 import sys
 import warnings
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Iterable, List, Optional, Sized, cast
@@ -111,6 +112,23 @@ class StepLogs:
         retval = SEPARATOR + "\n"
         for log in self._list:
             retval += log.details()
+        return retval
+
+    def report(self):
+        retval = SEPARATOR + "\n"
+        errors_counts: dict[type[Warning], int] = defaultdict(int)
+        warnings_counts: dict[type[Warning], int] = defaultdict(int)
+        for log in self._list:
+            if log.exception:
+                errors_counts[type(log.exception).__name__] += 1
+            for warn in log.warns:
+                warnings_counts[warn.category.__name__] += 1
+        retval += "Errors:\n"
+        for err_type, count in errors_counts.items():
+            retval += f"    {count: <3} {err_type}\n"
+        retval += "Warnings:\n"
+        for warn_type, count in warnings_counts.items():
+            retval += f"    {count: <3} {warn_type}\n"
         return retval
 
     def summary(self) -> str:
