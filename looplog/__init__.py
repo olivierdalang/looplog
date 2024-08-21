@@ -8,7 +8,7 @@ import sys
 import warnings
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Iterable, List, Optional
+from typing import Any, Callable, Iterable, List, Optional, Sized, cast
 
 from .utils import LineWriter, Timer, progress
 
@@ -33,7 +33,7 @@ class StepLog:
 
     name: str = ""
     exception: Optional[Exception] = None
-    warns: List = field(default_factory=list)
+    warns: List[warnings.WarningMessage] = field(default_factory=list)
     skipped: bool = False
     output: Any = None
 
@@ -79,7 +79,7 @@ class StepLog:
 class StepLogs:
     """List of logging outputs of all steps"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._list: List[StepLog] = []
         self.count_ok = 0
         self.count_warn = 0
@@ -155,7 +155,10 @@ def looplog(
         steplogs = StepLogs()
 
         loop_name = function.__name__ if name is None else name
-        max_val = len(values) if hasattr(values, "__len__") else None
+        if hasattr(values, "__len__"):
+            max_val = len(cast(Sized, values))
+        else:
+            max_val = None
 
         lw = LineWriter(enabled=not check_tty or sys.stdout.isatty())
         timer = Timer()
@@ -189,12 +192,19 @@ def looplog(
                         skipped = True
             if unmanaged:
                 for warn in warns:
-                    warnings._showwarnmsg(warn)
+                    warnings.showwarning(
+                        warn.message,
+                        warn.category,
+                        warn.filename,
+                        warn.lineno,
+                        warn.file,
+                        warn.line,
+                    )
 
             steplog = StepLog(
                 name=step_name(value) if step_name else f"step_{i+1}",
                 exception=exception,
-                warns=warns,
+                warns=warns or [],
                 output=output,
                 skipped=skipped,
             )
