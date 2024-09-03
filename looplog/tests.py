@@ -112,6 +112,24 @@ class UsageTests(unittest.TestCase):
 
         self.assertEqual(generator.summary(), "10 ok / 0 warn / 0 err / 0 skip")
 
+    def test_exception_node(self):
+        @looplog([1, 0], step_name=lambda v: f"item [{v}]")
+        def func_div(value):
+            try:
+                10 / value
+            except ZeroDivisionError as e:
+                e.add_note("this was done on purpose")
+                e.add_note("just saying")
+                raise e
+
+        self.assertEqual(
+            "----------------------------------------------------------------------------------------\n"
+            "item [0]\n"
+            "    ERROR: division by zero [notes: this was done on purpose, just saying]\n"
+            "----------------------------------------------------------------------------------------\n",
+            func_div.details(),
+        )
+
     def test_realtime_notty(self):
         # default without tty
         f = io.StringIO()

@@ -28,7 +28,11 @@ def demo():
         if old_grade > 20 or old_grade < 0:
             raise ValueError("Input out of range !")
 
-        # do something..
+        try:
+            10 / old_grade
+        except ZeroDivisionError as e:
+            e.add_note("this was done on purpose")
+            raise e
 
     time.sleep(0.5)
     input("\n\nPress enter to show summary...")
