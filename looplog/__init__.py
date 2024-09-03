@@ -68,18 +68,21 @@ class StepLog:
         retval = ""
         if self.warns or self.exception:
             retval += f"{self.name}\n"
-            if self.warns:
-                for w in self.warns:
-                    retval += f"    WARN:  {w.message}\n"
-            if self.exception:
-                msg = f"    ERROR: {self.exception}"
-                if hasattr(self.exception, "__notes__"):
-                    notes = ", ".join(self.exception.__notes__)
-                    if notes:
-                        msg += f" [notes: {notes}]"
-                retval += f"{msg}\n"
+            for message in self.messages():
+                retval += f"{message}\n"
             retval += f"{SEPARATOR}\n"
         return retval
+
+    def messages(self):
+        for w in self.warns:
+            yield f"    WARN:  {w.message}"
+        if self.exception:
+            msg = f"    ERROR: {self.exception}"
+            if hasattr(self.exception, "__notes__"):
+                notes = ", ".join(self.exception.__notes__)
+                if notes:
+                    msg += f" [notes: {notes}]"
+            yield msg
 
 
 class StepLogs:
@@ -236,16 +239,8 @@ def looplog(
 
             if steplog.warns or steplog.exception:
                 lw.writeln(steplog.name)
-                if steplog.warns:
-                    for w in steplog.warns:
-                        lw.writeln(f"    WARN:  {w.message}")
-                if steplog.exception:
-                    msg = f"    ERROR: {steplog.exception}"
-                    if hasattr(steplog.exception, "__notes__"):
-                        notes = ", ".join(steplog.exception.__notes__)
-                        if notes:
-                            msg += f" [notes: {notes}]"
-                    lw.writeln(msg)
+                for message in steplog.messages():
+                    lw.writeln(message)
                 lw.writeln(SEPARATOR)
 
             steplogs.append(steplog)
