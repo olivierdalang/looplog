@@ -1,5 +1,6 @@
 import logging
 import random
+import sys
 import time
 import warnings
 
@@ -31,7 +32,8 @@ def demo():
         try:
             10 / old_grade
         except ZeroDivisionError as e:
-            e.add_note("this was done on purpose")
+            if sys.version_info >= (3, 11):
+                e.add_note("this was done on purpose")
             raise e
 
     time.sleep(0.5)
