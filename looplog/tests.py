@@ -127,7 +127,7 @@ class UsageTests(unittest.TestCase):
         self.assertEqual(
             "----------------------------------------------------------------------------------------\n"
             "item [0]\n"
-            "    ERROR: division by zero [notes: this was done on purpose, just saying]\n"
+            "    ERROR: division by zero [this was done on purpose] [just saying]\n"
             "----------------------------------------------------------------------------------------\n",
             func_div.details(),
         )
@@ -287,6 +287,19 @@ class RegressionTests(unittest.TestCase):
             10 // value
 
         self.assertEqual(func_limit.summary(), "0 ok / 0 warn / 0 err / 0 skip")
+
+    def test_nomessage_exception(self):
+        @looplog([1])
+        def func_limit(value):
+            raise RuntimeError()
+
+        self.assertEqual(
+            func_limit.details(),
+            "----------------------------------------------------------------------------------------\n"
+            "step_1\n"
+            "    ERROR: RuntimeError\n"
+            "----------------------------------------------------------------------------------------\n",
+        )
 
 
 if __name__ == "__main__":

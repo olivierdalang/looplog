@@ -77,7 +77,10 @@ class StepLog:
         for w in self.warns:
             yield f"    WARN:  {w.message}"
         if self.exception:
-            msg = f"    ERROR: {self.exception}"
+            exception_str = str(self.exception)
+            if not exception_str:
+                exception_str = self.exception.__class__.__name__
+            msg = f"    ERROR: {exception_str}"
             if hasattr(self.exception, "__notes__"):
                 notes = " ".join(f"[{note}]" for note in self.exception.__notes__)
                 if notes:
