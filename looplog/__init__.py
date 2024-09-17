@@ -79,9 +79,9 @@ class StepLog:
         if self.exception:
             msg = f"    ERROR: {self.exception}"
             if hasattr(self.exception, "__notes__"):
-                notes = ", ".join(self.exception.__notes__)
+                notes = " ".join(f"[{note}]" for note in self.exception.__notes__)
                 if notes:
-                    msg += f" [notes: {notes}]"
+                    msg += f" {notes}"
             yield msg
 
 
