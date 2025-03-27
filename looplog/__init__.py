@@ -78,7 +78,7 @@ class StepLog:
 
     def messages(self):
         for line in self.stdout.splitlines():
-            yield f"    OUT:   {line}"
+            yield f"    OUT:   {line.strip()}"
         for w in self.warns:
             yield f"    WARN:  {w.message}"
         if self.exception:
