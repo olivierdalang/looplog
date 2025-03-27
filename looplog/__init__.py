@@ -180,7 +180,7 @@ def looplog(
         check_tty: If true, will only print real time if output is a tty, otherwise always prints.
         limit: Limit the count of objects to created (ignoring the rest).
         step_name: A callable returning the name of the item in logging.
-        unmanaged: If true, warnings and exceptions will be raised natively instead of being catched.
+        unmanaged: If true, warnings and exceptions will be raised natively instead of being catched (note that this will cause reports to be empty)
 
     Returns:
         StepLogs: _description_
@@ -210,42 +210,31 @@ def looplog(
 
             output = None
             exception = None
+            skipped = False
+            stdout = ""
+            warns = []
 
             if limit is not None and i >= limit:
                 break
 
-            skipped = False
-            stdout_io = io.StringIO()
-            with contextlib.redirect_stdout(stdout_io):
-                with warnings.catch_warnings(record=True) as warns:
-                    try:
-                        output = function(value)
-                    except Exception as e:
-                        if unmanaged:
-                            raise e
-                        exception = e
-                    else:
-                        if output is SKIP:
-                            skipped = True
-
             if unmanaged:
-                # TODO: this is not super clean as order won't be preserved... we prolly want to refactor this
-                for warn in warns:
-                    warnings.showwarning(
-                        warn.message,
-                        warn.category,
-                        warn.filename,
-                        warn.lineno,
-                        warn.file,
-                        warn.line,
-                    )
-                sys.stdout.write(stdout_io.getvalue())
+                output = function(value)
 
-            stdout = ""
-            if capture_stdout == "always" or (
-                capture_stdout == "auto" and (exception or warns)
-            ):
-                stdout = stdout_io.getvalue()
+            else:
+                stdout_io = io.StringIO()
+                with contextlib.redirect_stdout(stdout_io):
+                    with warnings.catch_warnings(record=True) as warns:
+                        try:
+                            output = function(value)
+                        except Exception as e:
+                            exception = e
+                        else:
+                            if output is SKIP:
+                                skipped = True
+                if capture_stdout == "always" or (
+                    capture_stdout == "auto" and (exception or warns)
+                ):
+                    stdout = stdout_io.getvalue()
 
             steplog = StepLog(
                 name=step_name(value) if step_name else f"step_{i+1}",
