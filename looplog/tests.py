@@ -114,7 +114,7 @@ class UsageTests(unittest.TestCase):
         self.assertEqual(generator.summary(), "10 ok / 0 warn / 0 err / 0 skip")
 
     @unittest.skipIf(sys.version_info < (3, 11), "add_note was introduced in py3.11")
-    def test_exception_node(self):
+    def test_exception_note(self):
         @looplog([1, 0], step_name=lambda v: f"item [{v}]")
         def func_div(value):
             try:

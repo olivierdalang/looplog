@@ -12,7 +12,7 @@ logger = logging.getLogger("")
 def demo():
     old_grades = [12, 14, 7, 11.25, "19", 0, 22.25, 0, 13, None, 15, 12]
 
-    @looplog(old_grades, logger=logger, step_name=lambda g: f"validating {repr(g)}")
+    @looplog(old_grades, step_name=lambda g: f"validating {repr(g)}")
     def validate_grade(old_grade):
         if old_grade is None:
             return SKIP
@@ -50,5 +50,4 @@ def demo():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBUG)
     demo()
