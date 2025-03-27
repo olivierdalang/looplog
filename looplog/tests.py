@@ -230,6 +230,69 @@ class UsageTests(unittest.TestCase):
                         warnings.warn("Input will be rounded !")
                     10 // value
 
+    def test_stdout(self):
+        def my_func(value):
+            print(f"i knew {value} would come")
+            if value == 2:
+                warnings.warn("soon the last one")
+            if value == 3:
+                raise Exception("this is the last one")
+
+        # by default, stdout is shown only on warnings/errors
+        @looplog([1, 2, 3])
+        def stdout_default(value):
+            my_func(value)
+
+        self.assertEqual(
+            stdout_default.details(),
+            "----------------------------------------------------------------------------------------\n"
+            "step_2\n"
+            "    OUT:   i knew 2 would come\n"
+            "    WARN:  soon the last one\n"
+            "----------------------------------------------------------------------------------------\n"
+            "step_3\n"
+            "    OUT:   i knew 3 would come\n"
+            "    ERROR: this is the last one\n"
+            "----------------------------------------------------------------------------------------\n",
+        )
+
+        # check it works with always
+        @looplog([1, 2, 3], capture_stdout="always")
+        def stdout_always(value):
+            my_func(value)
+
+        self.assertEqual(
+            stdout_always.details(),
+            "----------------------------------------------------------------------------------------\n"
+            "step_1\n"
+            "    OUT:   i knew 1 would come\n"
+            "----------------------------------------------------------------------------------------\n"
+            "step_2\n"
+            "    OUT:   i knew 2 would come\n"
+            "    WARN:  soon the last one\n"
+            "----------------------------------------------------------------------------------------\n"
+            "step_3\n"
+            "    OUT:   i knew 3 would come\n"
+            "    ERROR: this is the last one\n"
+            "----------------------------------------------------------------------------------------\n",
+        )
+
+        # check it works with never
+        @looplog([1, 2, 3], capture_stdout="never")
+        def stdout_never(value):
+            my_func(value)
+
+        self.assertEqual(
+            stdout_never.details(),
+            "----------------------------------------------------------------------------------------\n"
+            "step_2\n"
+            "    WARN:  soon the last one\n"
+            "----------------------------------------------------------------------------------------\n"
+            "step_3\n"
+            "    ERROR: this is the last one\n"
+            "----------------------------------------------------------------------------------------\n",
+        )
+
 
 class UnitTests(unittest.TestCase):
     def test_steplogs(self):

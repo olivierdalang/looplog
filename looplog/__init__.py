@@ -3,13 +3,15 @@ try:
 except ModuleNotFoundError:
     __version__ = "0.0.dev"
     version_tuple = (0, 0, "dev")
+import contextlib
+import io
 import logging
 import sys
 import warnings
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Iterable, List, Optional, Sized, cast
+from typing import Any, Callable, Iterable, List, Literal, Optional, Sized, cast
 
 from .utils import LineWriter, Timer, progress
 
@@ -35,6 +37,7 @@ class StepLog:
     name: str = ""
     exception: Optional[Exception] = None
     warns: List[warnings.WarningMessage] = field(default_factory=list)
+    stdout: str = ""
     skipped: bool = False
     output: Any = None
 
@@ -66,7 +69,7 @@ class StepLog:
 
     def details(self):
         retval = ""
-        if self.warns or self.exception:
+        if self.stdout or self.warns or self.exception:
             retval += f"{self.name}\n"
             for message in self.messages():
                 retval += f"{message}\n"
@@ -74,6 +77,8 @@ class StepLog:
         return retval
 
     def messages(self):
+        for line in self.stdout.splitlines():
+            yield f"    OUT:   {line}"
         for w in self.warns:
             yield f"    WARN:  {w.message}"
         if self.exception:
@@ -164,6 +169,7 @@ def looplog(
     limit: Optional[int] = None,
     step_name: Optional[Callable[[Any], str]] = None,
     unmanaged=False,
+    capture_stdout: Literal["auto", "always", "never"] = "auto",
 ) -> Callable[[Callable[[Any], Any]], StepLogs]:
     """Decorator running the given function against each value of the provided iterable values, logging warnings and exceptions for each one. This returns a StepLogs object.
 
@@ -209,17 +215,21 @@ def looplog(
                 break
 
             skipped = False
-            with warnings.catch_warnings(record=True) as warns:
-                try:
-                    output = function(value)
-                except Exception as e:
-                    if unmanaged:
-                        raise e
-                    exception = e
-                else:
-                    if output is SKIP:
-                        skipped = True
+            stdout_io = io.StringIO()
+            with contextlib.redirect_stdout(stdout_io):
+                with warnings.catch_warnings(record=True) as warns:
+                    try:
+                        output = function(value)
+                    except Exception as e:
+                        if unmanaged:
+                            raise e
+                        exception = e
+                    else:
+                        if output is SKIP:
+                            skipped = True
+
             if unmanaged:
+                # TODO: this is not super clean as order won't be preserved... we prolly want to refactor this
                 for warn in warns:
                     warnings.showwarning(
                         warn.message,
@@ -229,18 +239,26 @@ def looplog(
                         warn.file,
                         warn.line,
                     )
+                sys.stdout.write(stdout_io.getvalue())
+
+            stdout = ""
+            if capture_stdout == "always" or (
+                capture_stdout == "auto" and (exception or warns)
+            ):
+                stdout = stdout_io.getvalue()
 
             steplog = StepLog(
                 name=step_name(value) if step_name else f"step_{i+1}",
                 exception=exception,
                 warns=warns or [],
+                stdout=stdout,
                 output=output,
                 skipped=skipped,
             )
             if logger:
                 steplog.emit(logger)
 
-            if steplog.warns or steplog.exception:
+            if steplog.output or steplog.warns or steplog.exception:
                 lw.writeln(steplog.name)
                 for message in steplog.messages():
                     lw.writeln(message)

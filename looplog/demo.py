@@ -17,6 +17,9 @@ def demo():
         if old_grade is None:
             return SKIP
 
+        # debug messages are shown if there are warnings
+        print(f"Computing grade `{old_grade}`")
+
         # simulate some processing time
         time.sleep(random.uniform(0, 0.1))
 
