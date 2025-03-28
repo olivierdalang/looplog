@@ -203,9 +203,13 @@ def looplog(
         lw.writeln(SEPARATOR_BOLD)
 
         i = -1
+        step_name_len = 0
         for i, value in enumerate(values, start=0):
+            step_name_str = step_name(value) if step_name else f"step_{i+1}"
+            step_name_len = max(step_name_len, len(step_name_str))
+
             lw.provln(
-                f"{loop_name} [{progress(i, max_val)}][{i+1}/{max_val or '?'}][{timer}][{steplogs.summary()}]"
+                f"{step_name_str.ljust(step_name_len)} [{progress(i, max_val)}][{i+1}/{max_val or '?'}][{timer}][{steplogs.summary()}]"
             )
 
             output = None
@@ -237,7 +241,7 @@ def looplog(
                     stdout = stdout_io.getvalue()
 
             steplog = StepLog(
-                name=step_name(value) if step_name else f"step_{i+1}",
+                name=step_name_str,
                 exception=exception,
                 warns=warns or [],
                 stdout=stdout,
