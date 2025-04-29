@@ -251,11 +251,8 @@ def looplog(
             if logger:
                 steplog.emit(logger)
 
-            if steplog.output or steplog.warns or steplog.exception:
-                lw.writeln(steplog.name)
-                for message in steplog.messages():
-                    lw.writeln(message)
-                lw.writeln(SEPARATOR)
+            for line in steplog.details().splitlines():
+                lw.writeln(line)
 
             steplogs.append(steplog)
         lw.writeln(
